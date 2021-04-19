@@ -1,0 +1,200 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '/Users/mapostolides/Drive/fusion-pipeline/genometools_introns')
+```
+
+
+```{r, message=FALSE, echo=FALSE}
+# load needed libraries
+
+library("biomaRt")
+# library("tidyr")
+library("dplyr")
+library("stringr")
+library(kableExtra)
+```
+
+```{r load_ens_known_genes, echo=FALSE, message=FALSE}
+# LOAD OLD BED
+ens.known.genes <-  "/Users/mapostolides/MetaFusion/reference_files/ens_known_genes.renamed.ENSG.bed"
+ens.known.genes <- read.csv(file=ens.known.genes, header = FALSE, stringsAsFactors = F, sep="\t", na.strings = "")
+bed.fields <- c("chr", "start", "end", "transcript_id", "type", "idx", "strand", "gene_name", "gene_id")
+colnames(ens.known.genes) <- bed.fields
+```
+
+
+```{r map_ensg_to_hgnc, echo=FALSE, message=FALSE, warning=FALSE}
+#NEW REFERENCE DATA PRIOR TO INDEXING
+#Load in Rds object from script "/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/generate_ensbed.Rmd"
+bed.ensemblToGeneName<- readRDS("/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/bed.ensemblToGeneName.new_bed.Rds")
+
+
+
+```
+
+
+```{r}
+#1. LOAD NEW BED
+new.bed <-  "/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/new_bed.total.GRCh37.Sept-25-2020.bed"
+new.bed <- read.csv(file=new.bed, header = FALSE, stringsAsFactors = F, sep="\t", na.strings = "")
+bed.fields <- c("chr", "start", "end", "transcript_id", "type.new", "idx.new", "strand.new", "gene_name.new", "gene_id")
+colnames(new.bed) <- bed.fields
+
+#2. Modify new.bed region types which differ (i.e. exon --> utr3/utr5)
+
+# Get gene rows of bed.ensemblToGeneName (i.e. entire genes/RNAs)
+features<- c("processed_transcript", "pseudogenic_transcript", "pseudogene","lincRNA", "miRNA","mRNA", "processed_pseudogene", "transcript","snRNA","aberrant_processed_transcript", "NMD_transcript_variant",  "snoRNA","rRNA", "nc_primary_transcript", "V_gene_segment",  "J_gene_segment", "C_gene_segment")
+bed.ensemblToGeneName.RNA_types <- bed.ensemblToGeneName[bed.ensemblToGeneName$type %in% features,]
+
+inconsistent.features <- c("processed_transcript","pseudogenic_transcript","pseudogene","lincRNA","miRNA","processed_pseudogene","transcript","snRNA", "aberrant_processed_transcript","snoRNA","rRNA")
+inconsistent.features.ENSTs <-bed.ensemblToGeneName.RNA_types[bed.ensemblToGeneName.RNA_types$type %in% inconsistent.features,]$transcript_id
+
+# Basically, subfeatures which are "exon", and which have either utr5 or utr3 as old data type, need to be changed (i.e. exon --> utr3/utr5)
+#Forward strand
+new.bed[new.bed$strand == "f" &  new.bed$type.new == "exon" & new.bed$transcript_id %in%  inconsistent.features.ENSTs,]$type.new <- "utr5"
+#Reverse strand
+new.bed[new.bed$strand == "r" &  new.bed$type.new == "exon" & new.bed$transcript_id %in%  inconsistent.features.ENSTs,]$type.new <- "utr3"
+
+#3. confirm it worked
+# TEST.old.new.joined <- inner_join(ens.known.genes, new.bed, by=c("transcript_id", "gene_id", "chr", "start", "end"))
+# num_rows.diff_type <- nrow(TEST.old.new.joined[which(TEST.old.new.joined$type != TEST.old.new.joined$type.new),]) 
+# #num_rows.diff_type -- > [1] 54
+# num_rows.diff_idx <-  nrow(TEST.old.new.joined[which(TEST.old.new.joined$idx != TEST.old.new.joined$idx.new),]) 
+# #num_rows.diff_idx -- >[1] 233
+# TEST.old.new.joined.diff <- TEST.old.new.joined[which(TEST.old.new.joined$type != TEST.old.new.joined$type.new),]
+```
+
+``` {r }
+#ADD RNA type to new.bed
+#1. rename column type to rna_type
+colnames(bed.ensemblToGeneName.RNA_types)[colnames(bed.ensemblToGeneName.RNA_types) == "type"] <- "rna_type"
+#2. merge computed new.bed with reference
+new.bed.rna_type <- left_join(new.bed, bed.ensemblToGeneName.RNA_types[c("transcript_id", "rna_type")], by="transcript_id") 
+#length(bed.ensemblToGeneName.RNA_types[c("transcript_id", "type") - length(unique(new.bed$transcript_id))
+#3. Write new .bed file
+date<-"Oct-1-2020"
+file.to_write <- paste0("/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/new_bed.total.",date, ".bed")
+write.table(new.bed.rna_type, file.to_write,  sep="\t", quote=F,  row.names=F, col.names=F)
+
+```
+
+
+
+```{r}
+#TEST COMPARING ens.known.genes and new.bed
+test <- 0
+if (test){
+new.bed.ENST00000226218 <- new.bed[which(new.bed$transcript_id == "ENST00000226218"),]
+bed.ensemblToGeneName.ENST00000226218 <- bed.ensemblToGeneName[which(bed.ensemblToGeneName$transcript_id == "ENST00000226218"),]
+bed.ensemblToGeneName.RNA_types.ENST00000226218 <- bed.ensemblToGeneName.ENST00000226218[bed.ensemblToGeneName.ENST00000226218$type %in% features,]
+colnames(bed.ensemblToGeneName.RNA_types.ENST00000226218)[colnames(bed.ensemblToGeneName.RNA_types.ENST00000226218) == "type"] <- "rna_type"
+new.bed.rna_type.ENST00000226218 <- left_join(new.bed.ENST00000226218, bed.ensemblToGeneName.RNA_types.ENST00000226218[c("transcript_id", "rna_type")], by="transcript_id") 
+
+# Join old and new (indexed .bed files) (i.e. subcomponent features, utr3,utr5,cds,intron, exon)
+old.new.joined.ENST <- inner_join(ens.known.genes, new.bed, by=c("transcript_id", "gene_id", "chr", "start", "end"))
+
+#Ensure that subcomponent df contains only ENSTs in gene df
+old.new.joined.ENST.RNA_types <- old.new.joined.ENST[which(old.new.joined.ENST$transcript_id %in% bed.ensemblToGeneName.RNA_types$transcript_id),]
+table(old.new.joined.ENST.RNA_types$type)
+# > nrow(old.new.joined.ENST.RNA_types)
+# [1] 2346187
+# > nrow(old.new.joined.ENST)
+# [1] 2346187
+
+# Use joined .bed file to find genes which have inconsistent features types in old.new.joined.ENST
+inconsistent.genes.ENSTs <- unique(old.new.joined.ENST[old.new.joined.ENST$type != old.new.joined.ENST$type.new ,]$transcript_id)
+features.containing.inconsistent.subcomponents <- unique(bed.ensemblToGeneName.RNA_types[ bed.ensemblToGeneName.RNA_types$transcript_id %in% inconsistent.genes.ENSTs ,]$type)
+
+# df rows of bed which have inconsistent type between old and new
+old.new.joined.ENST.different_type <- old.new.joined.ENST[which(old.new.joined.ENST$type !=  old.new.joined.ENST$type.new),]
+#genes which have differences in their component features
+bed.ensemblToGeneName.RNA_types.diff_subfeatures <- bed.ensemblToGeneName.RNA_types[which(bed.ensemblToGeneName.RNA_types$transcript_id %in% old.new.joined.ENST.different_type$transcript_id ),]
+}
+```
+
+```{r}
+# topdir <- "/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/DIR.ens_known_genes.renamed.ENSG.sorted.bed--new_bed.total.GRCh37.Sept-25-2020.sorted.bed.diff/"
+# 
+# # file with ENSTs from old bed
+# old.diff.ENST <- paste0(topdir, "ens_known_genes.renamed.ENSG.sorted.bed.different.ENSTs")
+# old.diff.ENST <- read.csv(file=old.diff.ENST, header = FALSE, stringsAsFactors = F, sep="\t", na.strings = "")
+# #file with ENSTs from new bed
+# new.diff.ENST <- paste0(topdir, "new_bed.total.GRCh37.Sept-25-2020.sorted.bed.different.ENSTs")
+# new.diff.ENST <- read.csv(file=new.diff.ENST, header = FALSE, stringsAsFactors = F, sep="\t", na.strings = "")
+# 
+# #Find ENSTs common to both
+# common.ENST <- inner_join(old.diff.ENST, new.diff.ENST)
+# 
+# length(intersect(old.diff.ENST$V1, new.diff.ENST$V1 ))
+# 
+# #all(old.diff.ENST$V1 %in% new.diff.ENST$V1) = F
+# #all(new.diff.ENST$V1 %in% old.diff.ENST$V1) = T
+# 
+# #colnames(common.ENST)[colnames(common.ENST) == "V1"] <- 
+# 
+# # subset RNA_types file to get trancripts corresponding to features which differ, and are common to both OLD and NEW
+# bed.ensemblToGeneName.RNA_types.different<- bed.ensemblToGeneName.RNA_types[bed.ensemblToGeneName.RNA_types$transcript_id %in% common.ENST$V1,]
+# 
+# # SELECT FOR ALL mRNAS IN NEW BED WHICH HAVE FEATURES DIFFERENT FROM OLD BED
+# bed.ensemblToGeneName.RNA_types.different.mRNA <- bed.ensemblToGeneName.RNA_types.different[bed.ensemblToGeneName.RNA_types.different$type == "mRNA",]
+# 
+
+# 
+
+
+```
+
+
+```{r}
+
+# transcript_ids <- unique(bed.ensemblToGeneName.RNA_types$transcript_id)
+# #CONFIRMING that # of transcript_ids doesn't change
+# length(unique(bed.ensemblToGeneName.RNA_types$transcript_id))
+# 
+# file.to_write <- "/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/tmp.bed"
+# 
+# if(file.exists(file.to_write) ) {file.remove(file.to_write)}
+# 
+# # Index each transcript feature, incrementing when an intron is passed
+# bed.ensemblToGeneName.RNA_types$idx <- rep(0,length(bed.ensemblToGeneName.RNA_types$idx))
+# bed.ensemblToGeneName.RNA_types$chr <- sapply("chr", paste0,  bed.ensemblToGeneName.RNA_types$chr)
+# for (id in transcript_ids){
+#   transcript <- bed.ensemblToGeneName.RNA_types[bed.ensemblToGeneName.RNA_types$transcript_id == id,]
+#   
+#   # REFORMAT TRANSCRIPT STRAND
+#   #Change strand info (+ --> f, - --> r)
+#   if (unique(transcript$strand) == "+"){
+#     transcript$strand <- 'f'
+#   } else if  (unique(transcript$strand) == "-"){
+#     transcript$strand <- 'r'
+#   } else {
+#     errorCondition("Strand info for this transcript is inconsistent")
+#   }
+#   write.table(transcript, file.to_write, append=TRUE, sep="\t", quote=F,  row.names=F, col.names=F)
+# }
+
+
+
+# # lincRNAs
+# bed.ensemblToGeneName.lincRNA <- bed.ensemblToGeneName[bed.ensemblToGeneName$type == "lincRNA",]
+# old.new.joined.ENST.lincRNA <- old.new.joined.ENST[which(old.new.joined.ENST$transcript_id %in% bed.ensemblToGeneName.lincRNA$transcript_id),]
+# old.new.joined.ENST.lincRNA.different_idx <- old.new.joined.ENST.lincRNA[which(old.new.joined.ENST.lincRNA$idx !=  old.new.joined.ENST.lincRNA$idx.new),]
+# old.new.joined.ENST.lincRNA.different_type <- old.new.joined.ENST.lincRNA[which(old.new.joined.ENST.lincRNA$type !=  old.new.joined.ENST.lincRNA$type.new),]
+# 
+# # pseudogenic_transcript
+# bed.ensemblToGeneName.pseudogenic_transcript <- bed.ensemblToGeneName[bed.ensemblToGeneName$type == "pseudogenic_transcript",]
+# old.new.joined.ENST.pseudogenic_transcript <- old.new.joined.ENST[which(old.new.joined.ENST$transcript_id %in% bed.ensemblToGeneName.pseudogenic_transcript$transcript_id),]
+# old.new.joined.ENST.pseudogenic_transcript.different_type <- old.new.joined.ENST.pseudogenic_transcript[which(old.new.joined.ENST.pseudogenic_transcript$type !=  old.new.joined.ENST.pseudogenic_transcript$type.new),]
+# 
+# # get mRNA ENSTs from old.new.joined.ENST
+# # SELECT FOR ALL mRNA ENST IDs
+# bed.ensemblToGeneName.mRNA <- bed.ensemblToGeneName[bed.ensemblToGeneName$type == "mRNA",]
+# old.new.joined.ENST.mRNAs <- old.new.joined.ENST[which(old.new.joined.ENST$transcript_id %in% bed.ensemblToGeneName.mRNA$transcript_id),]
+# # mRNAs differing between ens.known.genes and new.bed
+# old.new.joined.ENST.mRNAs.different_idx <- old.new.joined.ENST.mRNAs[which(old.new.joined.ENST.mRNAs$idx !=  old.new.joined.ENST.mRNAs$idx.new),]
+```

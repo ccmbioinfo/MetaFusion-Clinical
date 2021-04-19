@@ -1,0 +1,219 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '/Users/mapostolides/Drive/fusion-pipeline/genometools_introns')
+```
+
+```{r, message=FALSE, echo=FALSE}
+# check to ensure all needed packages are installed
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+if (!requireNamespace("biomaRt", quietly = TRUE))
+  BiocManager::install("biomaRt")
+if (!requireNamespace("stringr", quietly = TRUE))
+  install.packages("stringr")
+if (!requireNamespace("kableExtra", quietly = TRUE))
+  install.packages("kableExtra")
+if (!requireNamespace("tidyr", quietly = TRUE))
+  install.packages("tidyr")
+```
+
+
+```{r, message=FALSE, echo=FALSE}
+# load needed libraries
+library("biomaRt")
+library("dplyr")
+library("stringr")
+library(kableExtra)
+```
+
+
+
+```{r map_ensg_to_hgnc, echo=FALSE, message=FALSE, warning=FALSE}
+#LOAD BED FILES I GENERATED
+cols <- c("chr", "start", "end", "idx", "TMP", "strand", "V6", "type", "V7", "transcript_id" )
+# Read in .bed file generated from "Homo_sapiens.GRCh37.87.chr.INTRONS.gff3"
+#STPG1.bed <- paste0( getwd(), "/", "STPG1.ENST00000003583.sorted.bed")
+#STPG1.bed <- read.csv(file=STPG1.bed, header = FALSE, stringsAsFactors = F, sep="\t", na.strings = "")
+
+total.bed <-  paste0( getwd(), "/", "Homo_sapiens.GRCh37.87.chr.INTRONS.sorted.bed")
+total.bed <- read.csv(file=total.bed, header = FALSE, stringsAsFactors = F, sep="\t", na.strings = "")
+colnames(total.bed) <- cols
+
+```
+
+
+```{r}
+#LOAD ensemblToGeneName.Ensembl_Genes.Sept-22-2020.txt
+ensemblToGeneName <- paste0( getwd(), "/", "ensemblToGeneName.Ensembl_Genes.Sept-22-2020.txt")
+ensemblToGeneName <- read.csv(file=ensemblToGeneName, header = TRUE, stringsAsFactors = F, sep="\t", na.strings = "")
+names(ensemblToGeneName)[names(ensemblToGeneName) == 'X.name'] <- 'transcript_id'
+names(ensemblToGeneName)[names(ensemblToGeneName) == 'value'] <- 'gene_name'
+```
+
+
+
+```{r map_ensg_to_hgnc, echo=FALSE, message=FALSE, warning=FALSE}
+# SET BED
+bed <- total.bed
+
+# Remove all rows which do not have an ENST ID
+bed <- bed[grepl("ENST[0-9]+", bed$transcript_id),]
+
+# THIS BLOCK just confirms that all rows removed due to not having ENST are not causing us to lose any ENSGs
+#Store all rows which have no ENST IDs
+total.bed.no_ENSTs <- anti_join(total.bed, bed)
+# Get all rows from "total.bed.no_ENSTs" which have ENSG IDs
+total.bed.no_ENSTs.with_ENSGs <- total.bed.no_ENSTs[grepl("ENSG[0-9]+", total.bed.no_ENSTs$transcript_id),]
+#remove all characters from column 10 except the ENSG IDs 
+total.bed.no_ENSTs.with_ENSGs$gene_id <- regmatches(total.bed.no_ENSTs.with_ENSGs$transcript_id, regexpr("ENSG[0-9]+",total.bed.no_ENSTs.with_ENSGs$transcript_id) )
+# all(total.bed.no_ENSTs.with_ENSGs$gene_id %in% bed.ensemblToGeneName$gene_id) --> TRUE
+
+#remove all characters from column 10 except the ENST IDs 
+bed$transcript_id <- regmatches(bed$transcript_id, regexpr("ENST[0-9]+",bed$transcript_id) )
+
+# Retrieve conversion using biomart or conversion stash 
+conversion_stash <- "conversion_stash.full_bed.GRCh37.rds"
+if(file.exists(conversion_stash)){
+  conversion <- readRDS(conversion_stash)
+} else {
+    # Biomart query
+    ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl", GRCh=37)
+    #MAP ENST TO ENSG SYMBOLS
+    conversion <- getBM(attributes = c("ensembl_transcript_id", "ensembl_gene_id","hgnc_symbol"), 
+                         filters = c("ensembl_transcript_id"), values = unique(bed$transcript_id), mart = ensembl)
+    saveRDS(conversion, conversion_stash)
+}
+
+# Map conversion data to bed file, merge using join
+names(conversion)[names(conversion) == 'ensembl_transcript_id'] <- 'transcript_id'
+names(conversion)[names(conversion) == 'ensembl_gene_id'] <- 'gene_id'
+#names(conversion)[names(conversion) == 'hgnc_symbol'] <- 'gene_name'
+
+# Map ENSTs to ENSGs where possible, removing entries in "bed" which lack ENSGs
+joined.bed <- inner_join(bed, conversion)
+bed.ensemblToGeneName <-  left_join(joined.bed, ensemblToGeneName, by="transcript_id")
+
+saveRDS(bed.ensemblToGeneName, file="/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/bed.ensemblToGeneName.new_bed.Rds")
+
+```
+
+```{r}
+# Index exons, introns, utr5, utr3 
+
+# Process and index each transcript_id separately
+transcript_ids <- unique(bed.ensemblToGeneName.feature_subset$transcript_id)
+
+file.to_write <- "/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/new_bed.total.bed"
+
+if(file.exists(file.to_write) ) {file.remove(file.to_write)}
+
+#START CLOCK: THE INDEXING TAKES A LONG TIME, LIKE 5 HOURS
+ptm <- proc.time()
+
+# Index each transcript feature, incrementing when an intron is passed
+for (id in transcript_ids){
+  coding <- 0
+  transcript <- bed.ensemblToGeneName.feature_subset[bed.ensemblToGeneName.feature_subset$transcript_id == id,]
+  # Remove exons if coding gene, since "exon" and "CDS" are duplicates of one another
+  if ("CDS" %in% transcript$type){
+    transcript <- transcript[!transcript$type == "exon",]
+  }
+  # Order features by increasing bp 
+  transcript <- transcript[order(transcript$start, decreasing = FALSE),]
+  # Index features
+  idx <- 0
+  for (i in 1:nrow(transcript)){
+    transcript[i,]$idx <- idx
+    if (transcript[i,]$type == "intron"){
+      #print(transcript[i,]$type)
+      idx <- idx + 1
+    }
+  }
+  # REFORMAT TRANSCRIPT
+  #Change strand info (+ --> f, - --> r)
+  if (unique(transcript$strand) == "+"){
+    transcript$strand <- 'f'
+  } else if  (unique(transcript$strand) == "-"){
+    transcript$strand <- 'r'
+  } else {
+    errorCondition("Strand info for this transcript is inconsistent")
+  }
+  #Add "chr" prefix to chromosomes
+  transcript$chr <- sapply("chr", paste0,  transcript$chr)
+  #Change CDS --> cds
+  if ("CDS" %in% unique(transcript$type)){transcript[transcript$type == "CDS",]$type <- "cds"}
+  # Change "three_prime_UTR" --> "utr3"
+  if ("three_prime_UTR" %in% unique(transcript$type)){transcript[transcript$type == "three_prime_UTR",]$type <- "utr3"}
+  #Change "five_prime_UTR"  --> "utr5"
+  if ("five_prime_UTR" %in% unique(transcript$type)){transcript[transcript$type == "five_prime_UTR",]$type <- "utr5"}
+  transcript <- transcript[c("chr", "start", "end", "transcript_id", "type", "idx", "strand", "gene_name", "gene_id" )]
+  write.table(transcript, file.to_write, append=TRUE, sep="\t", quote=F,  row.names=F, col.names=F)
+
+}
+
+#STOP CLOCK
+time <- proc.time() - ptm
+time
+```
+
+
+```{r map_ensg_to_hgnc, echo=FALSE, message=FALSE, warning=FALSE}
+#NEW REFERENCE DATA PRIOR TO INDEXING
+#Load in Rds object from script "/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/generate_ensbed.Rmd"
+bed.ensemblToGeneName<- readRDS("/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/bed.ensemblToGeneName.new_bed.Rds")
+
+
+
+```
+
+
+```{r}
+#1. LOAD NEW BED
+new.bed <-  "/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/new_bed.total.GRCh37.Sept-25-2020.bed"
+new.bed <- read.csv(file=new.bed, header = FALSE, stringsAsFactors = F, sep="\t", na.strings = "")
+bed.fields <- c("chr", "start", "end", "transcript_id", "type.new", "idx.new", "strand.new", "gene_name.new", "gene_id")
+colnames(new.bed) <- bed.fields
+
+#2. Modify new.bed region types which differ (i.e. exon --> utr3/utr5)
+
+# Get gene rows of bed.ensemblToGeneName (i.e. entire genes/RNAs)
+features<- c("processed_transcript", "pseudogenic_transcript", "pseudogene","lincRNA", "miRNA","mRNA", "processed_pseudogene", "transcript","snRNA","aberrant_processed_transcript", "NMD_transcript_variant",  "snoRNA","rRNA", "nc_primary_transcript", "V_gene_segment",  "J_gene_segment", "C_gene_segment")
+bed.ensemblToGeneName.RNA_types <- bed.ensemblToGeneName[bed.ensemblToGeneName$type %in% features,]
+
+inconsistent.features <- c("processed_transcript","pseudogenic_transcript","pseudogene","lincRNA","miRNA","processed_pseudogene","transcript","snRNA", "aberrant_processed_transcript","snoRNA","rRNA")
+inconsistent.features.ENSTs <-bed.ensemblToGeneName.RNA_types[bed.ensemblToGeneName.RNA_types$type %in% inconsistent.features,]$transcript_id
+
+# Basically, subfeatures which are "exon", and which have either utr5 or utr3 as old data type, need to be changed (i.e. exon --> utr3/utr5)
+#Forward strand
+new.bed[new.bed$strand == "f" &  new.bed$type.new == "exon" & new.bed$transcript_id %in%  inconsistent.features.ENSTs,]$type.new <- "utr5"
+#Reverse strand
+new.bed[new.bed$strand == "r" &  new.bed$type.new == "exon" & new.bed$transcript_id %in%  inconsistent.features.ENSTs,]$type.new <- "utr3"
+
+#3. confirm it worked
+# TEST.old.new.joined <- inner_join(ens.known.genes, new.bed, by=c("transcript_id", "gene_id", "chr", "start", "end"))
+# num_rows.diff_type <- nrow(TEST.old.new.joined[which(TEST.old.new.joined$type != TEST.old.new.joined$type.new),]) 
+# #num_rows.diff_type -- > [1] 54
+# num_rows.diff_idx <-  nrow(TEST.old.new.joined[which(TEST.old.new.joined$idx != TEST.old.new.joined$idx.new),]) 
+# #num_rows.diff_idx -- >[1] 233
+# TEST.old.new.joined.diff <- TEST.old.new.joined[which(TEST.old.new.joined$type != TEST.old.new.joined$type.new),]
+```
+
+``` {r }
+#ADD RNA type to new.bed
+#1. rename column type to rna_type
+colnames(bed.ensemblToGeneName.RNA_types)[colnames(bed.ensemblToGeneName.RNA_types) == "type"] <- "rna_type"
+#2. merge computed new.bed with reference
+new.bed.rna_type <- left_join(new.bed, bed.ensemblToGeneName.RNA_types[c("transcript_id", "rna_type")], by="transcript_id") 
+#length(bed.ensemblToGeneName.RNA_types[c("transcript_id", "type") - length(unique(new.bed$transcript_id))
+#3. Write new .bed file
+date<-"Oct-1-2020"
+file.to_write <- paste0("/Users/mapostolides/Drive/fusion-pipeline/genometools_introns/new_bed.total.",date, ".bed")
+write.table(new.bed.rna_type, file.to_write,  sep="\t", quote=F,  row.names=F, col.names=F)
+
+```
+

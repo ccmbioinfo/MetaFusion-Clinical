@@ -1,0 +1,18 @@
+topdir=/Users/mapostolides/Drive/fusion-pipeline/genometools_introns
+
+Used the following GTF as a starting point: 
+ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_35/GRCh37_mapping/gencode.v35lift37.annotation.gff3.gz
+
+Then used "genometools" to produce introns:
+$ gt gff3 -retainids -addintrons Homo_sapiens.GRCh37.87.chr.gff3.gz > $topdir/Homo_sapiens.GRCh37.87.chr.INTRONS.gff3
+
+Next, used the "gff2bed" tool to convert gff3 to bed
+$ gff2bed < Homo_sapiens.GRCh37.87.chr.INTRONS.gff3 > Homo_sapiens.GRCh37.87.chr.INTRONS.bed
+cat Homo_sapiens.GRCh37.87.chr.INTRONS.bed | sort -k1,1 -k2,2n > Homo_sapiens.GRCh37.87.chr.INTRONS.sorted.bed
+
+THEN, used table browser to get the following file:
+https://genome.ucsc.edu/cgi-bin/hgTables
+ensemblToGeneName.Ensembl_Genes.Sept-22-2020.txt
+SCREENSHOT of exact query here:/MetaFusion/make_annotation_file/ensemblToGeneName.Ensembl_Genes.Sept-22-2020.SCREENSHOT.png
+
+THEN, used R to index and further annotate the file "Homo_sapiens.GRCh37.87.chr.INTRONS.sorted.bed" with "ensemblToGeneName.Ensembl_Genes.Sept-22-2020.txt" 
