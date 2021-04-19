@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+import sys
+import  pygeneann_MetaFusion as pygeneann
+import sequtils
+import pysam
+import argparse
+
+
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--cff', action='store', help='CFF file, can be .cff or cff.reann')
+parser.add_argument('--gene_bed', action='store', help='Ensemble gene file')
+parser.add_argument('--ref_fa', required=False, action='store', help='Reference genome file')
+
+args = parser.parse_args()
+cff_file = args.cff
+ensbed = args.gene_bed
+# Assign reference fasta if provided by user
+if args.ref_fa is not None:
+  ref_fa=args.ref_fa
+#Load bed format gene annotation, current support knowngene.bed's format, map given genomic loactions to genens, return matched gene list
+gene_ann = pygeneann.GeneAnnotation(ensbed)
+
+n = 1    
+for line in open(cff_file, "r"):
+                
+    fusion = pygeneann.CffFusion(line)
+
+    # Change breakpoint index from 1 to 0 based indexing. 
+    one_based_index_tools = ["arriba", "star_fusion", "defuse", "fusionmap", "ericscript"]
+    if fusion.tool in one_based_index_tools: fusion.pos1 -= 1; fusion.pos2 -= 1
+
+    # ann_gene_order is an instance method of CffFusion class.  
+    fusion.ann_gene_order(gene_ann)
+
+    #annotate fusion id and seq
+    fusion.fusion_id = "F" + (str(n)).zfill(8)
+
+    # Get fusion seq only if specified by user
+    if args.ref_fa is not None: 
+      pygeneann.get_fusion_seq(fusion, ref_fa, 100)
+
+    print(fusion.tostring() )
+    n += 1
+
