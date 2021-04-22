@@ -37,11 +37,11 @@ if (operation == "remove"){
 }
 
 if(table == "clinical_fusions"){
-  # Read in excel
-  cluster <- readxl::read_xlsx(cluster.xlsx)
   # Update clinical_fusions table
   if(operation == "add"){
     print("updating clinical_fusions table")
+    # Read in excel
+    cluster <- readxl::read_xlsx(cluster.xlsx)
     # Subset and format cluster to make compatible with clincal_fusions table
     clinical.colnames <- c("comment", "sample", "fusion", "gene1", "gene2", "chr1", "ref_pos1", 
     "strand1", "chr2", "ref_pos2", "strand2", "split_cnt", "span_cnt")
@@ -81,25 +81,26 @@ if(table == "clinical_fusions"){
   
 # UPDATE FALSE POSITIVE TABLE
 } else if(table == "false_positives"){
-  # Read in excel
-  FP.cluster <- readxl::read_xlsx(cluster.xlsx)
-  
-  # Subset and format cluster to make compatible with false_positives table
-  FP.cluster.subset <- cluster[c("gene1", "gene2") ]
-  
-  # Clear the stage
-  print("Clear the FP_stage")
-  del_res <- dbSendQuery(conn,"delete from FP_stage;")
-  print(del_res)
-  dbClearResult(del_res)
-  
-  # Append to stage
-  print("dbAppendTable(conn, FP_stage, FP.cluster.subset)")
-  dbAppendTable(conn, "FP_stage", FP.cluster.subset)
-  FP_stage <- dbGetQuery(conn, "SELECT * from FP_stage")
-  
+
   # Update false_positives table
   if(operation == "add"){
+    # Read in excel
+    FP.cluster <- readxl::read_xlsx(cluster.xlsx)
+    
+    # Subset and format cluster to make compatible with false_positives table
+    FP.cluster.subset <- FP.cluster[c("gene1", "gene2") ]
+    
+    # Clear the stage
+    print("Clear the FP_stage")
+    del_res <- dbSendQuery(conn,"delete from FP_stage;")
+    print(del_res)
+    dbClearResult(del_res)
+    
+    # Append to stage
+    print("dbAppendTable(conn, FP_stage, FP.cluster.subset)")
+    dbAppendTable(conn, "FP_stage", FP.cluster.subset)
+    FP_stage <- dbGetQuery(conn, "SELECT * from FP_stage")
+  
     print("dbSendQuery(conn, insert or ignore into false_positives select * from FP_stage;)")
     insert_res <- dbSendQuery(conn, "insert or ignore into false_positives select * from FP_stage;")
     print(insert_res)
@@ -123,6 +124,10 @@ if(table == "clinical_fusions"){
   if(operation == "view"){
     print("viewing historical_fusions table")
     write_xlsx(historical_fusions, path = paste0("historical_fusions.view.", current_time, ".xlsx"))
+    # Write list of samples which have been run and are contained in historical_fusions
+    print("writing list of unique samples contained in historical_fusions table")
+    samples_run <- dbGetQuery(conn, "select distinct samples from historical_fusions") 
+    write_xlsx(samples_run, path = paste0("samples_run_so_far.", current_time, ".xlsx"))
     
   } else if(operation == "add"){
     print("add to historical_fusions table is done by running MetaFusion, and update is automatic. 
