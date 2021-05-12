@@ -3,12 +3,10 @@
 import sys
 import os
 import argparse
-import subprocess
-import pandas as pd
 
 class FusionResult():
     def __init__(self, tool, line, idxes):
-        tmp = line.split()
+        tmp = line.split()  # type: [str]
         idx_chr1, idx_pos1, idx_strand1, idx_chr2, idx_pos2, idx_strand2, idx_frame, idx_split_cnt, idx_pair_cnt, idx_gene1, idx_gene2, idx_gene_location1, idx_gene_location2 = idxes
         self.tool = tool
         # DRAGEN
@@ -78,6 +76,18 @@ class FusionResult():
             self.gene1 = tmp[idx_gene1]
             self.gene2 = tmp[idx_gene2]
             self.pair_cnt = tmp[idx_pair_cnt] if idx_pair_cnt != "NA" else -1
+            self.frame = tmp[idx_frame]
+
+        elif self.tool == "CICERO":
+            self.chr1 = tmp[idx_chr1].lstrip("chr")  # strip leading chr
+            self.pos1 = tmp[idx_pos1]
+            self.strand1 = tmp[idx_strand1]
+            self.chr2 = tmp[idx_chr2].lstrip("chr")
+            self.pos2 = tmp[idx_pos2]
+            self.strand2 = tmp[idx_strand2]
+            self.gene1 = tmp[idx_gene1]
+            self.gene2 = tmp[idx_gene2]
+            self.pair_cnt = tmp[idx_pair_cnt]
             self.frame = tmp[idx_frame]
 
         else:
@@ -251,7 +261,24 @@ class FusionResultFile():
                 self._idx_gene2 = tmp.index("3P")
                 self._idx_gene_location1 = "NA"
                 self._idx_gene_location2 = "NA"
-                self._idx_frame = "NA" 
+                self._idx_frame = "NA"
+
+            elif tmp[0] == "sample":
+                self.tool = "CICERO"
+
+                self._idx_chr1 = tmp.index("chrA")
+                self._idx_chr2 = tmp.index("chrB")
+                self._idx_pos1 = tmp.index("posA")
+                self._idx_pos2 = tmp.index("posB")
+                self._idx_strand1 = tmp.index("ortA")
+                self._idx_strand2 = tmp.index("ortB")
+                self._idx_split_cnt = tmp.index("readsA")
+                self._idx_pair_cnt = tmp.index("matchA")
+                self._idx_gene1 = tmp.index("geneA")
+                self._idx_gene2 = tmp.index("geneB")
+                self._idx_gene_location1 = tmp.index("qposA")
+                self._idx_gene_location2 = tmp.index("qposB")
+                self._idx_frame = tmp.index("frame")
 
             else:
                 fusion = FusionResult(self.tool, line, [self._idx_chr1, self._idx_pos1, self._idx_strand1, self._idx_chr2, self._idx_pos2, self._idx_strand2, self._idx_frame, self._idx_split_cnt, self._idx_pair_cnt, self._idx_gene1, self._idx_gene2, self._idx_gene_location1, self._idx_gene_location2])
