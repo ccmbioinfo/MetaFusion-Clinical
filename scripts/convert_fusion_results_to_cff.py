@@ -83,6 +83,7 @@ class FusionResult:
             self.frame = tmp[idx_frame]
 
         elif self.tool == "CICERO":
+            tmp = line.split("\t")
             self.chr1 = tmp[idx_chr1].lstrip("chr")  # strip leading chr
             self.pos1 = tmp[idx_pos1]
             self.strand1 = tmp[idx_strand1]
@@ -275,6 +276,7 @@ class FusionResultFile:
                 self._idx_frame = "NA"
 
             elif tmp[0] == "sample":
+                tmp = line.split("\t")
                 self.tool = "CICERO"
 
                 self._idx_chr1 = tmp.index("chrA")
