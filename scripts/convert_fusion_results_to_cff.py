@@ -84,10 +84,10 @@ class FusionResult:
 
         elif self.tool == "CICERO":
             tmp = line.split("\t")
-            self.chr1 = tmp[idx_chr1][:3] if tmp[idx_chr1].startswith(("chr", "Chr")) else tmp[idx_chr1]
+            self.chr1 = tmp[idx_chr1][3:] if tmp[idx_chr1].startswith(("chr", "Chr")) else tmp[idx_chr1]
             self.pos1 = tmp[idx_pos1]
             self.strand1 = tmp[idx_strand1]
-            self.chr2 = tmp[idx_chr2][:3] if tmp[idx_chr2].startswith(("chr", "Chr")) else tmp[idx_chr2]
+            self.chr2 = tmp[idx_chr2][3:] if tmp[idx_chr2].startswith(("chr", "Chr")) else tmp[idx_chr2]
             self.pos2 = tmp[idx_pos2]
             self.strand2 = tmp[idx_strand2]
             self.gene1 = tmp[idx_gene1]
