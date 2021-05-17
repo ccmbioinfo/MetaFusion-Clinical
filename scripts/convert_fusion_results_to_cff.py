@@ -294,8 +294,8 @@ class FusionResultFile:
                 self._idx_pair_cnt = tmp.index("matchA")
                 self._idx_gene1 = tmp.index("geneA")
                 self._idx_gene2 = tmp.index("geneB")
-                self._idx_gene_location1 = tmp.index("qposA")
-                self._idx_gene_location2 = tmp.index("qposB")
+                self._idx_gene_location1 = tmp.index("featureA")
+                self._idx_gene_location2 = tmp.index("featureB")
                 self._idx_frame = tmp.index("frame")
 
             else:
