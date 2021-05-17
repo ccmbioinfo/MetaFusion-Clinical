@@ -93,7 +93,12 @@ class FusionResult:
             self.gene1 = tmp[idx_gene1]
             self.gene2 = tmp[idx_gene2]
             self.pair_cnt = tmp[idx_pair_cnt]
-            self.frame = tmp[idx_frame]
+            frame_note = {"0": "out-of-frame", "1": "in-frame",
+                          "2": "canonical coding start site in tail",
+                          "3": "possible 5' UTR fusion in tail"}
+            frame = ",".join([frame_note[x] for x in set(tmp[idx_frame].split(",")) if x != ""])
+            frame = "NA" if frame == "" else frame
+            self.frame = frame
 
         else:  # Integrate uses this
             self.chr1 = tmp[idx_chr1]
