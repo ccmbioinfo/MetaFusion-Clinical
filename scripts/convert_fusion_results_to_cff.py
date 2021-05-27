@@ -92,7 +92,8 @@ class FusionResult:
             self.strand2 = tmp[idx_strand2]
             self.gene1 = tmp[idx_gene1]
             self.gene2 = tmp[idx_gene2]
-            self.pair_cnt = tmp[idx_pair_cnt]
+            self.pair_cnt = "NA"
+            self.split_cnt = tmp[idx_split_cnt[0]] +tmp[idx_split_cnt[1]]
             frame_note = {"0": "out-of-frame", "1": "in-frame",
                           "2": "canonical coding start site in tail",
                           "3": "possible 5' UTR fusion in tail"}
@@ -115,7 +116,8 @@ class FusionResult:
         # FIELDS COMMON TO ALL FUSION CALLERS
         self.gene_location1 = tmp[idx_gene_location1] if idx_gene_location1 != "NA" else "NA"
         self.gene_location2 = tmp[idx_gene_location2] if idx_gene_location2 != "NA" else "NA"
-        self.split_cnt = tmp[idx_split_cnt] if idx_split_cnt != "NA" else -1
+        if not getattr(self, "split_cnt", __default=False):  # If not already defined
+            self.split_cnt = tmp[idx_split_cnt] if idx_split_cnt != "NA" else -1
 
 
 class FusionResultFile:
@@ -290,8 +292,8 @@ class FusionResultFile:
                 self._idx_pos2 = tmp.index("posB")
                 self._idx_strand1 = tmp.index("ortA")
                 self._idx_strand2 = tmp.index("ortB")
-                self._idx_split_cnt = tmp.index("readsA")
-                self._idx_pair_cnt = tmp.index("matchA")
+                self._idx_split_cnt = (tmp.index("readsA"), tmp.index("readsB"))
+                self._idx_pair_cnt = "NA"
                 self._idx_gene1 = tmp.index("geneA")
                 self._idx_gene2 = tmp.index("geneB")
                 self._idx_gene_location1 = tmp.index("featureA")
