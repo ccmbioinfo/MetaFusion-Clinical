@@ -93,7 +93,7 @@ class FusionResult:
             self.gene1 = tmp[idx_gene1]
             self.gene2 = tmp[idx_gene2]
             self.pair_cnt = "NA"
-            self.split_cnt = tmp[idx_split_cnt[0]] +tmp[idx_split_cnt[1]]
+            self.split_cnt = tmp[idx_split_cnt[0]] + tmp[idx_split_cnt[1]]
             frame_note = {"0": "out-of-frame", "1": "in-frame",
                           "2": "canonical coding start site in tail",
                           "3": "possible 5' UTR fusion in tail"}
@@ -116,7 +116,7 @@ class FusionResult:
         # FIELDS COMMON TO ALL FUSION CALLERS
         self.gene_location1 = tmp[idx_gene_location1] if idx_gene_location1 != "NA" else "NA"
         self.gene_location2 = tmp[idx_gene_location2] if idx_gene_location2 != "NA" else "NA"
-        if not getattr(self, "split_cnt", __default=False):  # If not already defined
+        if not hasattr(self, "split_cnt"):  # If not already defined
             self.split_cnt = tmp[idx_split_cnt] if idx_split_cnt != "NA" else -1
 
 
