@@ -95,8 +95,8 @@ class FusionResult:
             self.pair_cnt = -1
             self.split_cnt = tmp[idx_split_cnt[0]] + tmp[idx_split_cnt[1]]
             frame_note = {"0": "out-of-frame", "1": "in-frame",
-                          "2": "canonical coding start site in tail",
-                          "3": "possible 5' UTR fusion in tail"}
+                          "2": "canonical_coding_start_site_in_tail",
+                          "3": "possible_5'_UTR_fusion_in_tail"}
             frame = ",".join([frame_note[x] for x in set(tmp[idx_frame].split(",")) if x != ""])
             frame = "NA" if frame == "" else frame
             self.frame = frame
