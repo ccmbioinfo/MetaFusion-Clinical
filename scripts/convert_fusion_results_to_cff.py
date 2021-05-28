@@ -92,7 +92,7 @@ class FusionResult:
             self.strand2 = tmp[idx_strand2]
             self.gene1 = tmp[idx_gene1]
             self.gene2 = tmp[idx_gene2]
-            self.pair_cnt = "NA"
+            self.pair_cnt = -1
             self.split_cnt = tmp[idx_split_cnt[0]] + tmp[idx_split_cnt[1]]
             frame_note = {"0": "out-of-frame", "1": "in-frame",
                           "2": "canonical coding start site in tail",
