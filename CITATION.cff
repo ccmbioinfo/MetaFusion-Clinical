@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: ""
+title: "MetaFusion-Clinical"
+type: software
+preferred-citation:
+  authors:
+    - family-names: Apostolides
+      given-names: Michael
+      affiliation: "Centre for Computational Medicine, The Hospital for Sick Children, Toronto, ON, Canada"
+    - family-names: Jiang
+      given-names: Yue
+      affiliation: "Centre for Computational Medicine, The Hospital for Sick Children, Toronto, ON, Canada"
+    - family-names: Husić
+      given-names: Mia
+      affiliation: "Centre for Computational Medicine, The Hospital for Sick Children, Toronto, ON, Canada"
+    - family-names: Siddaway
+      given-names: Robert
+      affiliation: "The Arthur and Sonia Labatt Brain Tumour Research Centre, The Hospital for Sick Children, Toronto, ON, Canada"
+    - family-names: Hawkins
+      given-names: Cynthia
+      affiliation: "The Arthur and Sonia Labatt Brain Tumour Research Centre, The Hospital for Sick Children, Toronto, ON, Canada"
+    - family-names: Turinsky
+      given-names: Andrei L.
+      affiliation: "Centre for Computational Medicine, The Hospital For Sick Children, Toronto, ON, Canada"
+    - family-names: Brudno
+      given-names: Michael
+      affiliation: "Centre for Computational Medicine, The Hospital For Sick Children, Toronto, ON, Canada"
+    - family-names: Ramani
+      given-names: Arun K.
+      affiliation: "Centre for Computational Medicine, The Hospital For Sick Children, Toronto, ON, Canada"
+  title: "MetaFusion: A high-confidence metacaller for filtering and prioritizing RNA-seq gene fusion candidates"
+  type: article
+  doi: 10.1093/bioinformatics/btab249
