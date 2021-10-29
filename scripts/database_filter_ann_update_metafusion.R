@@ -55,12 +55,14 @@ if (query.clin == 1){
   for(i in 1:nrow(cluster)) {
     fusion <- cluster[i, ]
   
-    #genes query
-    query.genes <- paste0("SELECT * FROM clinical_fusions WHERE (gene1='",fusion$gene1,"' AND gene2='", fusion$gene2, "')")
-    query.genes.rev <- paste0("SELECT * FROM clinical_fusions WHERE (gene1='",fusion$gene2,"' AND gene2='", fusion$gene1, "')")
-    df.genes <- dbGetQuery(conn, query.genes )
-    df.genes.rev <- dbGetQuery(conn, query.genes.rev )
-    df.genes <-rbind(df.genes, df.genes.rev)
+    #genes query: Run only if the fusion is not an ITD (gene1 == gene2)
+    if (fusion$gene1 == fusion$gene2) {
+      query.genes <- paste0("SELECT * FROM clinical_fusions WHERE (gene1='",fusion$gene1,"' AND gene2='", fusion$gene2, "')")
+      query.genes.rev <- paste0("SELECT * FROM clinical_fusions WHERE (gene1='",fusion$gene2,"' AND gene2='", fusion$gene1, "')")
+      df.genes <- dbGetQuery(conn, query.genes )
+      df.genes.rev <- dbGetQuery(conn, query.genes.rev )
+      df.genes <-rbind(df.genes, df.genes.rev)
+    }
   
     # breakpoints query
     slop <- 10
@@ -69,8 +71,14 @@ if (query.clin == 1){
     df.bps <- dbGetQuery(conn, query.bps )
     df.bps.rev <- dbGetQuery(conn, query.bps.rev )
     df.bps <- rbind(df.bps, df.bps.rev)
-  
-    df.matches <- unique(rbind(df.genes, df.bps))
+ 
+    # Remove duplicates. If an ITD, we don't have gene query.
+    if (fusion$gene1 == fusion$gene2) {
+      df.matches <- unique(rbind(df.genes, df.bps))
+    } else {
+      df.matches <- unique(df.bps)
+    }
+
     # remove spaces from sample names
     df.matches$sample <- stringr::str_replace(pattern="\\s+", replacement="-", df.matches$sample)
   
