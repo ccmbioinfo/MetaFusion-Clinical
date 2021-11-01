@@ -55,8 +55,8 @@ if (query.clin == 1){
   for(i in 1:nrow(cluster)) {
     fusion <- cluster[i, ]
   
-    #genes query: Run only if the fusion is not an ITD (gene1 == gene2)
-    if (fusion$gene1 == fusion$gene2) {
+    #genes query: Run only if the fusion is *NOT* an ITD (gene1 == gene2)
+    if (fusion$gene1 != fusion$gene2) {
       query.genes <- paste0("SELECT * FROM clinical_fusions WHERE (gene1='",fusion$gene1,"' AND gene2='", fusion$gene2, "')")
       query.genes.rev <- paste0("SELECT * FROM clinical_fusions WHERE (gene1='",fusion$gene2,"' AND gene2='", fusion$gene1, "')")
       df.genes <- dbGetQuery(conn, query.genes )
