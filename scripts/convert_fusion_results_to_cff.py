@@ -93,7 +93,7 @@ class FusionResult:
             self.gene1 = tmp[idx_gene1]
             self.gene2 = tmp[idx_gene2]
             self.pair_cnt = -1
-            self.split_cnt = tmp[idx_split_cnt[0]] + tmp[idx_split_cnt[1]]
+            self.split_cnt = int(tmp[idx_split_cnt[0]]) + int(tmp[idx_split_cnt[1]])
             frame_note = {"0": "out-of-frame", "1": "in-frame",
                           "2": "canonical_coding_start_site_in_tail",
                           "3": "possible_5'_UTR_fusion_in_tail"}

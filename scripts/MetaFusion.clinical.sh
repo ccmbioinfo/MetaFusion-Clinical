@@ -214,29 +214,37 @@ if [ $RT_call_filter -eq 1 ]; then
   cat $cluster | grep -v ReadThrough > $outdir/$(basename $cluster).RT_filter
   python callerfilter_num.py --cluster $outdir/$(basename $cluster).RT_filter --num_tools $num_tools > $outdir/$(basename $cluster).RT_filter.callerfilter.$num_tools
 fi
-if [ $? -eq 1 ]; then
-	echo No calls pass ReadThrough and callerfilter. See the following file for unfiltered calls
-	echo $cluster
-	exit 1
-fi
-cluster_RT_call=$outdir/$(basename $cluster).RT_filter.callerfilter.$num_tools 
+if [[ $? -eq 1 ]]; then # callerfilter_num.py throws an error if there's no passing calls
+  # If there's no clinical hits, then abort. There's nothing left to process
+  if [[ ! -f $cluster_clinical || ! -s $cluster_clinical ]]; then
+    echo No calls pass ReadThrough and callerfilter. See the following file for unfiltered calls
+    echo $cluster
+    exit 1
+  elif [[ -f $cluster_clinical || -s $cluster_clinical ]]; then  # If we have clinical hits, then we stil want to proceed as normal
+    touch ${outdir}/$(basename $cluster).RT_filter.callerfilter.${num_tools}.blck_filter
+    touch ${outdir}/$(basename $cluster).RT_filter.callerfilter.${num_tools}.blck_filter.ANC_filter
+  else
+    echo Unknown error
+    exit 2
+  fi
+else # Otherwise, proceed normally
+  cluster_RT_call=$outdir/$(basename $cluster).RT_filter.callerfilter.$num_tools 
 
+  # Blocklist Filter
+  if [ $blck_filter -eq 1 ]; then
+    echo blocklist filter
+    #echo bash blocklist_filter_recurrent_breakpoints.sh $cff $cluster_RT_call $outdir $recurrent_bedpe
+    bash blocklist_filter_recurrent_breakpoints.sh $cff $cluster_RT_call $outdir $recurrent_bedpe > $outdir/$(basename $cluster).RT_filter.callerfilter.$num_tools.blck_filter
+  fi
+  cluster=$outdir/$(basename $cluster).RT_filter.callerfilter.$num_tools.blck_filter
 
-# Blocklist Filter
-if [ $blck_filter -eq 1 ]; then
-  echo blocklist filter
-  #echo bash blocklist_filter_recurrent_breakpoints.sh $cff $cluster_RT_call $outdir $recurrent_bedpe
-  bash blocklist_filter_recurrent_breakpoints.sh $cff $cluster_RT_call $outdir $recurrent_bedpe > $outdir/$(basename $cluster).RT_filter.callerfilter.$num_tools.blck_filter
-fi
-cluster=$outdir/$(basename $cluster).RT_filter.callerfilter.$num_tools.blck_filter
-
-# Adjacent Noncoding filter 
-if [ $ANC_filter -eq 1 ]; then
-  echo ANC adjacent noncoding filter
-  python filter_adjacent_noncoding.py $cluster > $outdir/$(basename $cluster).ANC_filter  
+  # Adjacent Noncoding filter 
+  if [ $ANC_filter -eq 1 ]; then
+    echo ANC adjacent noncoding filter
+    python filter_adjacent_noncoding.py $cluster > $outdir/$(basename $cluster).ANC_filter  
+  fi
 fi
 cluster=$outdir/$(basename $cluster).ANC_filter
-
 #Rank and add in clinical calls 
 if [ $rank -eq 1 ]; then
   echo Rank  

@@ -55,8 +55,8 @@ if (query.clin == 1){
   for(i in 1:nrow(cluster)) {
     fusion <- cluster[i, ]
   
-    #genes query: Run only if the fusion is *NOT* an ITD (gene1 == gene2)
-    if (fusion$gene1 != fusion$gene2) {
+    #genes query: Run only if the fusion is *NOT* an ITD (gene1 != gene2)
+    if (is.na(fusion$gene1) || is.na(fusion$gene2) || fusion$gene1 != fusion$gene2) {
       query.genes <- paste0("SELECT * FROM clinical_fusions WHERE (gene1='",fusion$gene1,"' AND gene2='", fusion$gene2, "')")
       query.genes.rev <- paste0("SELECT * FROM clinical_fusions WHERE (gene1='",fusion$gene2,"' AND gene2='", fusion$gene1, "')")
       df.genes <- dbGetQuery(conn, query.genes )
@@ -73,7 +73,7 @@ if (query.clin == 1){
     df.bps <- rbind(df.bps, df.bps.rev)
  
     # Remove duplicates. If an ITD, we don't have gene query.
-    if (fusion$gene1 == fusion$gene2) {
+    if (is.na(fusion$gene1) || is.na(fusion$gene2) || fusion$gene1 != fusion$gene2) {
       df.matches <- unique(rbind(df.genes, df.bps))
     } else {
       df.matches <- unique(df.bps)
@@ -113,11 +113,13 @@ if (query.hist == 1){
     #i=43
     fusion <- cluster[i, ]
   
-    # genes query
-    query.genes <- paste0("SELECT * FROM historical_fusions WHERE (gene1='",fusion$gene1,"' AND gene2='", fusion$gene2, "')")
-    query.genes.rev <- paste0("SELECT * FROM historical_fusions WHERE (gene1='",fusion$gene2,"' AND gene2='", fusion$gene1, "')")
-    df.genes <-rbind(dbGetQuery(conn, query.genes ), dbGetQuery(conn, query.genes.rev ))
-  
+    # genes query if not an ITD
+    if (is.na(fusion$gene1) || is.na(fusion$gene2) || fusion$gene1 != fusion$gene2) {
+      query.genes <- paste0("SELECT * FROM historical_fusions WHERE (gene1='",fusion$gene1,"' AND gene2='", fusion$gene2, "')")
+      query.genes.rev <- paste0("SELECT * FROM historical_fusions WHERE (gene1='",fusion$gene2,"' AND gene2='", fusion$gene1, "')")
+      df.genes <-rbind(dbGetQuery(conn, query.genes ), dbGetQuery(conn, query.genes.rev ))
+    }
+
     # breakpoints query
     slop <- 10
     query.bps <- paste0("SELECT * FROM historical_fusions WHERE (breakpoint_1 > ",fusion$breakpoint_1-slop," AND breakpoint_1 < ",     fusion$breakpoint_1+slop, " AND breakpoint_2 > ",fusion$breakpoint_2-slop," AND breakpoint_2 < ", fusion$breakpoint_2+slop," AND chr1='",fusion$chr1,",' AND chr2='", fusion$chr2, "'",  ") ")
@@ -125,7 +127,11 @@ if (query.hist == 1){
     df.bps <- rbind(dbGetQuery(conn, query.bps ), dbGetQuery(conn, query.bps.rev ))
   
     #matches are hits based on either gene names, or where both breakpoints are within 10bp
-    df.matches <- unique(rbind(df.genes, df.bps))
+    if (is.na(fusion$gene1) || is.na(fusion$gene2) || fusion$gene1 != fusion$gene2) {
+      df.matches <- unique(rbind(df.genes, df.bps))
+    } else {
+      df.matches <- unique(df.bps)
+    }
   
     # change to vector, since randomly becoming factor
     fusion$samples <- as.vector(fusion$samples)
