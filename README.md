@@ -1,5 +1,4 @@
 # MetaFusion-Clinical
-MetaFusion is a flexible meta-calling tool that amalgamates outputs from any number of fusion callers. Individual caller results are standardized by conversion into the new file type Common Fusion Format (CFF)
 
 MetaFusion-Clinical wiki is here: https://github.com/ccmbioinfo/MetaFusion-Clinical/wiki
 
