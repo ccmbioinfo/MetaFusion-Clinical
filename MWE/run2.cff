@@ -1,7 +1,6 @@
 22	23524425	+	9	133729450	+	NA	patient4	Tumor	cancer	star_seqr	5	5	BCR	NA	ABL1	NA
 22	23524425	+	9	133729453	+	NA	patient4	Tumor	cancer	star_seqr	0	33	BCR	NA	ABL1	NA
 22	23524426	+	9	133729451	+	in-frame	patient4	Tumor	cancer	arriba	5	34	BCR	NA	ABL1	NA
-22	23524426	+	9	133738150	+	out-of-frame	patient4	Tumor	cancer	arriba	0	0	BCR	NA	ABL1	NA
 22	23524426	+	9	133729451	+	INFRAME	patient4	Tumor	cancer	star_fusion	42	35	BCR	NA	ABL1	NA
 9	133589842	+	22	23595986	+	INFRAME	patient4	Tumor	cancer	star_fusion	2	0	ABL1	NA	BCR	NA
 22	23524426	NA	9	133729451	NA	InFrame	patient4	Tumor	cancer	fusionmap	23	-1	BCR	NA	ABL1	NA
@@ -27,4 +26,4 @@
 7	138579088	-	7	140487384	+	NA	patient6	Tumor	cancer	defuse	95	3	KIAA1549	coding	BRAF	coding
 7	138579088	-	7	140487384	-	NA	patient6	Tumor	CANCER	dragen	-1	-1	KIAA1549	NA	BRAF	NA
 22	21797145	+	22	21088130	-	NA	patient4	Tumor	cancer	star_seqr	0	0	HIC2	NA	PI4KA	NA
-7	138579087	-	7	140487383	-	NA	patient7	Tumor	cancer	star_seqr	0	11	KIAA1549	NA	BRAF	NA
+7	138552721	-	7	140487384	-	INFRAME	patient5	Tumor	cancer	star_fusion	11	4	KIAA1549	NA	BRAF	NA
