@@ -27,3 +27,4 @@
 7	138579088	-	7	140487384	+	NA	patient6	Tumor	cancer	defuse	95	3	KIAA1549	coding	BRAF	coding
 7	138579088	-	7	140487384	-	NA	patient6	Tumor	CANCER	dragen	-1	-1	KIAA1549	NA	BRAF	NA
 22	21797145	+	22	21088130	-	NA	patient4	Tumor	cancer	star_seqr	0	0	HIC2	NA	PI4KA	NA
+7	138579087	-	7	140487383	-	NA	patient7	Tumor	cancer	star_seqr	0	11	KIAA1549	NA	BRAF	NA
