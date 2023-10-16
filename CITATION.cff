@@ -36,6 +36,10 @@ preferred-citation:
     Clinical Implementation of MetaFusion for Accurate Cancer-Driving 
     Fusion Detection from RNA Sequencing
   type: article
+  journal: Journal of Molecular Diagnostics
+  volume: "TBA"
+  issue: "TBA"
+  year: 2023
   doi: 10.1016/j.jmoldx.2023.09.002
   authors:
     - family-names: Apostolides
@@ -105,10 +109,32 @@ preferred-citation:
         Cell Biology Program, Hospital for Sick Children, Toronto, Ontario, Canada
       email: robert.siddaway@sickkids.ca
 references:
+  - title: "MetaFusion-Clinical reference files"
+    type: data
+    doi: "10.6084/m9.figshare.24239689.v1"
+    authors:
+      - family-names: Apostolides
+        given-names: Michael
+        affiliation: >-
+          Centre for Computational Medicine, The Hospital for Sick Children,
+          Toronto, ON, Canada
+  - title: "MetaFusion.clinical.simg"
+    type: software
+    doi: "10.6084/m9.figshare.14454342.v1"
+    authors:
+      - family-names: Apostolides
+        given-names: Michael
+        affiliation: >-
+          Centre for Computational Medicine, The Hospital for Sick Children,
+          Toronto, ON, Canada
   - title: >-
       MetaFusion: A high-confidence metacaller for filtering and prioritizing
       RNA-seq gene fusion candidates
     type: article
+    journal: Bioinformatics
+    volume: 37
+    issue: 19
+    year: 2021
     doi: 10.1093/bioinformatics/btab249
     authors:
       - family-names: Apostolides
