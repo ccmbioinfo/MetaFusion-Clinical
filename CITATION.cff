@@ -1,33 +1,153 @@
 cff-version: 1.2.0
-message: ""
-title: "MetaFusion-Clinical"
+title: MetaFusion-Clinical
+message: >-
+  A high-confidence metacaller for filtering and
+  prioritizing RNA-seq gene fusion candidates.
 type: software
+authors:
+  - family-names: Apostolides
+    given-names: Michael
+    affiliation: >-
+      Centre for Computational Medicine, The Hospital for
+      Sick Children, Toronto, ON, Canada
+  - family-names: Jiang
+    given-names: Yue
+    affiliation: >-
+      Centre for Computational Medicine, The Hospital for
+      Sick Children, Toronto, ON, Canada
+  - family-names: Li
+    given-names: Michael
+    affiliation: >-
+      Centre for Computational Medicine, The Hospital for
+      Sick Children, Toronto, ON, Canada
+  - family-names: Siddaway
+    given-names: Robert
+    affiliation: >-
+      Division of Pathology, Hospital for Sick Children, Toronto, Ontario, Canada
+
+      The Arthur and Sonia Labatt Brain Tumour Research Centre, Hospital for Sick Children, Toronto, Ontario, Canada
+      
+      Cell Biology Program, Hospital for Sick Children, Toronto, Ontario, Canada
+    email: robert.siddaway@sickkids.ca
+repository-code: 'https://github.com/ccmbioinfo/MetaFusion-Clinical'
+license: BSD-3-Clause-Clear
 preferred-citation:
+  title: >-
+    Clinical Implementation of MetaFusion for Accurate Cancer-Driving 
+    Fusion Detection from RNA Sequencing
+  type: article
+  doi: 10.1016/j.jmoldx.2023.09.002
   authors:
     - family-names: Apostolides
       given-names: Michael
-      affiliation: "Centre for Computational Medicine, The Hospital for Sick Children, Toronto, ON, Canada"
-    - family-names: Jiang
-      given-names: Yue
-      affiliation: "Centre for Computational Medicine, The Hospital for Sick Children, Toronto, ON, Canada"
+      affiliation: >-
+        Centre for Computational Medicine, The Hospital for Sick Children,
+        Toronto, ON, Canada
+    - family-names: Li
+      given-names: Michael
+      affiliation: >-
+        Division of Pathology, Hospital for Sick Children, Toronto, Ontario, Canada
+    - family-names: Arnoldo
+      given-names: Anthony
+      affiliation: >-
+        Centre for Computational Medicine, The Hospital for Sick Children,
+        Toronto, ON, Canada
+    - family-names: Ku
+      given-names: Michelle
+      affiliation: >-
+        The Arthur and Sonia Labatt Brain Tumour Research Centre, The Hospital
+        for Sick Children, Toronto, ON, Canada
+
+        Cell Biology Program, Hospital for Sick Children, Toronto, Ontario, Canada
     - family-names: Husić
       given-names: Mia
-      affiliation: "Centre for Computational Medicine, The Hospital for Sick Children, Toronto, ON, Canada"
-    - family-names: Siddaway
-      given-names: Robert
-      affiliation: "The Arthur and Sonia Labatt Brain Tumour Research Centre, The Hospital for Sick Children, Toronto, ON, Canada"
-    - family-names: Hawkins
-      given-names: Cynthia
-      affiliation: "The Arthur and Sonia Labatt Brain Tumour Research Centre, The Hospital for Sick Children, Toronto, ON, Canada"
-    - family-names: Turinsky
-      given-names: Andrei L.
-      affiliation: "Centre for Computational Medicine, The Hospital For Sick Children, Toronto, ON, Canada"
-    - family-names: Brudno
-      given-names: Michael
-      affiliation: "Centre for Computational Medicine, The Hospital For Sick Children, Toronto, ON, Canada"
+      affiliation: >-
+        Centre for Computational Medicine, Hospital for Sick Children, 
+        Toronto, Ontario, Canada
     - family-names: Ramani
       given-names: Arun K.
-      affiliation: "Centre for Computational Medicine, The Hospital For Sick Children, Toronto, ON, Canada"
-  title: "MetaFusion: A high-confidence metacaller for filtering and prioritizing RNA-seq gene fusion candidates"
-  type: article
-  doi: 10.1093/bioinformatics/btab249
+      affiliation: >-
+        Centre for Computational Medicine, The Hospital For Sick Children,
+        Toronto, ON, Canada
+    - family-names: Brudno
+      given-names: Michael
+      affiliation: >-
+        Centre for Computational Medicine, The Hospital For Sick Children,
+        Toronto, ON, Canada
+        
+        Department of Computer Science, University of Toronto, Toronto, Ontario, Canada
+        
+        University Health Network, Toronto, Ontario, Canada
+    - family-names: Turinsky
+      given-names: Andrei L.
+      affiliation: >-
+        Centre for Computational Medicine, The Hospital For Sick Children,
+        Toronto, ON, Canada
+    - family-names: Hawkins
+      given-names: Cynthia
+      affiliation: >-
+        Division of Pathology, Hospital for Sick Children, Toronto, Ontario, Canada
+        
+        The Arthur and Sonia Labatt Brain Tumour Research Centre, Hospital for Sick Children, 
+        Toronto, Ontario, Canada
+
+        Cell Biology Program, Hospital for Sick Children, Toronto, Ontario, Canada
+        
+        Department of Laboratory Medicine and Pathobiology, University of Toronto, Toronto, Ontario, Canada
+      email: cynthia.hawkins@sickkids.ca
+    - family-names: Siddaway
+      given-names: Robert
+      affiliation: >-
+        Division of Pathology, Hospital for Sick Children, Toronto, Ontario, Canada
+
+        The Arthur and Sonia Labatt Brain Tumour Research Centre, Hospital for Sick Children, Toronto, Ontario, Canada
+        
+        Cell Biology Program, Hospital for Sick Children, Toronto, Ontario, Canada
+      email: robert.siddaway@sickkids.ca
+references:
+  - title: >-
+      MetaFusion: A high-confidence metacaller for filtering and prioritizing
+      RNA-seq gene fusion candidates
+    type: article
+    doi: 10.1093/bioinformatics/btab249
+    authors:
+      - family-names: Apostolides
+        given-names: Michael
+        affiliation: >-
+          Centre for Computational Medicine, The Hospital for Sick Children,
+          Toronto, ON, Canada
+      - family-names: Jiang
+        given-names: Yue
+        affiliation: >-
+          Centre for Computational Medicine, The Hospital for Sick Children,
+          Toronto, ON, Canada
+      - family-names: Husić
+        given-names: Mia
+        affiliation: >-
+          Centre for Computational Medicine, The Hospital for Sick Children,
+          Toronto, ON, Canada
+      - family-names: Siddaway
+        given-names: Robert
+        affiliation: >-
+          The Arthur and Sonia Labatt Brain Tumour Research Centre, The Hospital
+          for Sick Children, Toronto, ON, Canada
+      - family-names: Hawkins
+        given-names: Cynthia
+        affiliation: >-
+          The Arthur and Sonia Labatt Brain Tumour Research Centre, The Hospital
+          for Sick Children, Toronto, ON, Canada
+      - family-names: Turinsky
+        given-names: Andrei L.
+        affiliation: >-
+          Centre for Computational Medicine, The Hospital For Sick Children,
+          Toronto, ON, Canada
+      - family-names: Brudno
+        given-names: Michael
+        affiliation: >-
+          Centre for Computational Medicine, The Hospital For Sick Children,
+          Toronto, ON, Canada
+      - family-names: Ramani
+        given-names: Arun K.
+        affiliation: >-
+          Centre for Computational Medicine, The Hospital For Sick Children,
+          Toronto, ON, Canada
